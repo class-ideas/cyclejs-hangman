@@ -17,21 +17,19 @@ function model(actions) {
     return keys;
   }, []).startWith([]);
 
-  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-
-  let alphabet$ = Rx.Observable.from([ALPHABET]);
-
-  return Rx.Observable.combineLatest(guesses$, alphabet$, 
-    (guesses, alphabet) => { return {guesses, alphabet}; }
-  );
+  return guesses$;
 }
 
-function view (state$) {
-  return state$.map((state) => {
-    console.log('guesses a:',state.guesses);
+function view(state$) {
+  return state$.map((guesses) => {
+    console.log('guesses a:', guesses);
     return h('div', [
-      h('h2', ['Cycle Hangman']),
-      h('keyboard', {state})
+      h('h2', 'Cycle Hangman'),
+      h('keyboard', {disabled: guesses}),
+      h('div', [
+        h('string', 'guesses:'),
+        guesses.map(char => h('span', char))
+      ])
     ]);
   });
 }
