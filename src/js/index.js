@@ -7,25 +7,25 @@ import keyboard from './widgets/keyboard';
 
 function intent(DOM) {
   return {
-    keyPress: DOM.select('.keyboard').events('key').map(e => e.detail)
+    selectedKeys: DOM
+      .select('.keyboard')
+      .events('selectedKeys')
+      .map(e => e.detail)
+      .startWith([])
   }
 }
 
 function model(actions) {
-  let guesses$ = actions.keyPress.scan((keys, key) => {
-    keys.push(key);
-    return keys;
-  }, []).startWith([]);
+  let guesses$ = actions.selectedKeys;
 
   return guesses$;
 }
 
 function view(state$) {
   return state$.map((guesses) => {
-    console.log('guesses a:', guesses);
     return h('div', [
       h('h2', 'Cycle Hangman'),
-      h('keyboard', {disabled: guesses}),
+      h('keyboard'),
       h('div', [
         h('string', 'guesses:'),
         guesses.map(char => h('span', char))

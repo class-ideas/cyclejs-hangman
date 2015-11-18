@@ -2,12 +2,17 @@ import Rx from 'rx';
 import {h} from '@cycle/dom';
 
 function intent(DOM) {
-  let key$ = DOM.select('.keyboard-button')
+  let selectedKeys$ = DOM.select('.keyboard-button')
     .events('click')
-    .map(e => e.target.textContent);
+    .map(e => e.target.textContent)
+    .scan((keys, key) => {
+      keys.push(key);
+      return keys;
+    }, [])
+    .startWith([]);
 
   return {
-    key$
+    selectedKeys$
   }
 }
 
@@ -19,10 +24,8 @@ function keyboardRows() {
 }
 
 function model(context, actions) {
-  let disabled$ = context.props.get('disabled');
+  let disabled$ = actions.selectedKeys$;
   let rows$ = keyboardRows();
-
-  let keyTemp$ = actions.key$.startWith('');
 
   return Rx.Observable
     .combineLatest(disabled$, rows$, (disabled, rows) => {
@@ -31,18 +34,13 @@ function model(context, actions) {
         if (disabled.indexOf(char) >= 0) {
           data.props.disabled = 'disabled';
         }
-        if (data.props.disabled) {
-          console.log('disabled prop for', char, data.props.disabled, 'disabled-list:', disabled);
-        }
         return data;
       }));
     });
 }
 
 function view(state$) {
-  window.state$ = state$;
   return state$.map(rows => {
-    console.log('new data point:', rows);
     return h('div.keyboard', rows.map(row => {
       return h('div.keyboard-row', row.map(d => {
         return h('button.keyboard-button', d.props, d.char);
@@ -60,7 +58,7 @@ function keyboard(responses) {
   return {
     DOM: vtree$,
     events: {
-      key: actions.key$
+      selectedKeys: actions.selectedKeys$
     }
   };
 
