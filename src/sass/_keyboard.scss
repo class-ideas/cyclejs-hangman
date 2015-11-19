@@ -1,0 +1,17 @@
+.keyboard {
+  button {
+    width: 30px;
+    line-height: 23px;
+    background: #abc;
+    border: none;
+    border-radius: 4px;
+    color: #345;
+    margin: 1px;
+    text-transform: uppercase;
+    font-weight: bold;
+
+    &[disabled] {
+      opacity: 0.5;
+    }
+  }
+}

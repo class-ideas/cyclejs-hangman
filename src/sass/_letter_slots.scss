@@ -1,0 +1,21 @@
+.letter-slots {
+  text-align: center;
+  margin-bottom: 20px;
+
+  .letter-slot {
+    display: inline-block;
+    border-bottom: 2px solid #345;
+    color: #678;
+    width: 30px;
+    height: 30px;
+    margin: 3px;
+    text-transform: uppercase;
+    text-align: center;
+    font-size: 24px;
+    vertical-align: bottom;
+
+    &.revealed {
+      color: lighten(#678, 40%);
+    }
+  }
+}

@@ -1,0 +1,53 @@
+.hangman-sprites {
+  position: relative;
+  height: 200px;
+  width: 110px;
+  margin: auto;
+
+  div {
+    background: url('../images/hangman-sprite.png') no-repeat 0 0;
+    width: 110px;
+    height: 175px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: opacity 1s;
+  }
+
+  .current {
+    opacity: 1;
+  }
+
+  .strike-0 {
+    background-position: -119px -185px;
+  }
+
+  .strike-1 {
+    background-position: 8px -182px;
+  }
+
+  .strike-2 {
+    background-position: 0px 1px;
+  }
+
+  .strike-3 {
+    background-position: -126px 2px;
+  }
+
+  .strike-4 {
+    background-position: -259px 1px;
+  }
+
+  .strike-5 {
+    background-position: -386px 1px;
+  }
+
+  .gameover {
+    background-position: -385px -190px;
+  }
+
+  .gamewon {
+    background-position: -262px -188px;
+  }
+}

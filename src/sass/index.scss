@@ -1,0 +1,37 @@
+@import "hangman";
+@import "keyboard";
+@import "letter_slots";
+
+body {
+  background: #e2ebf3;
+  font-family: Cabin;
+}
+
+.app {
+  width: 416px;
+  background: white;
+  padding: 20px;
+  border-radius: 4px;
+  margin: 20px auto;
+
+  h1 {
+    margin: 10px;
+    text-align: center;
+  }
+
+  .new-game {
+    background: #456;
+    font-size: 24px;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    display: block;
+    margin: 20px auto 0;
+    opacity: 0;
+    transition: opacity 1s;
+
+    &.shown {
+      opacity: 1;
+    }
+  }
+}

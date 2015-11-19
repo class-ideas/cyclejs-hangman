@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "mkdir -p app/js && cp src/index.html app/index.html && npm run bundle",
+    "sass": "node-sass src/sass/index.scss > app/css/main.css",
+    "build": "mkdir -p app/js && mkdir -p app/css && cp src/index.html app/index.html && npm run bundle && npm run sass",
     "bundle": "browserify src/js/index.js -d -t [ babelify ] -o app/js/bundle.js"
   },
   "keywords": [],
