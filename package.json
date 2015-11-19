@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "mkdir -p app/js && cp src/index.html app/index.html && npm run bundle",
-    "bundle": "browserify src/js/index.js -t [ babelify ] -o app/js/bundle.js"
+    "bundle": "browserify src/js/index.js -d -t [ babelify ] -o app/js/bundle.js"
   },
   "keywords": [],
   "author": "",
