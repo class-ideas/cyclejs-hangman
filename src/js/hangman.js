@@ -6,6 +6,7 @@ import word$ from './word_stream';
 
 import Keyboard from './keyboard';
 import LetterSlots from './letter_slots';
+import Artwork from './artwork';
 
 function view(DOM) {
 
@@ -15,14 +16,21 @@ function view(DOM) {
     word$,
     guesses$: keyboard.selectedKeys$
   });
+  let artwork = Artwork({
+    DOM,
+    word$,
+    guesses$: keyboard.selectedKeys$
+  });
 
   return Rx.Observable.combineLatest(
+    artwork.DOM,
     letterSlots.DOM,
     keyboard.DOM,
     keyboard.selectedKeys$,
-    (letterSlotsVtree, keyboardVtree, guesses) => {
+    (artworkVtree, letterSlotsVtree, keyboardVtree, guesses) => {
       return h('div', [
         h('h2', 'Cycle Hangman'),
+        artworkVtree,
         letterSlotsVtree,
         keyboardVtree,
         h('div', [
