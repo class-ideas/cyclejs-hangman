@@ -9,6 +9,7 @@ import {WINNING_LEVEL, LOSING_LEVEL} from './levels';
 import Keyboard from './keyboard';
 import LetterSlots from './letter_slots';
 import Artwork from './artwork';
+import NewGameButton from './new_game_button';
 
 function view(DOM) {
 
@@ -42,15 +43,18 @@ function view(DOM) {
     return (count !== WINNING_LEVEL) && (count !== LOSING_LEVEL);
   });
 
+  let newGameButton = NewGameButton({DOM, gameOn$});
+
   let artwork = Artwork(strikes$);
 
   return Rx.Observable.combineLatest(
+    newGameButton.DOM,
     artwork.DOM,
     letterSlots.DOM,
     keyboard.DOM,
     keyboard.selectedKeys$,
     gameOn$,
-    (artworkVtree, letterSlotsVtree, keyboardVtree, guesses, gameOn) => {
+    (newGameButton, artworkVtree, letterSlotsVtree, keyboardVtree, guesses, gameOn) => {
       return h('div', [
         h('h1', 'Hang Man'),
         artworkVtree,
@@ -60,7 +64,7 @@ function view(DOM) {
           h('string', 'guesses:'),
           Array.from(guesses).map(char => h('span', char))
         ]),
-        h(`button.new-game.${gameOn ? 'hidden' : 'shown'}`, {disabled: gameOn}, 'New Game')
+        newGameButton
       ]);
     }
   );
