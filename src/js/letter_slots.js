@@ -18,7 +18,7 @@ function view(state$) {
   });
 }
 
-function letter_slots({DOM, word$, guesses$}) {
+function letter_slots({word$, guesses$}) {
 
   return {
     DOM: view(model({word$, guesses$}))
