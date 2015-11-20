@@ -5,9 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "app": "mkdir -p app/js app/css app/images",
+    "html": "cp src/index.html app/index.html",
     "sass": "node-sass src/sass/index.scss > app/css/main.css",
-    "build": "mkdir -p app/js && mkdir -p app/css && cp src/index.html app/index.html && npm run bundle && npm run sass",
-    "bundle": "browserify src/js/index.js -d -t [ babelify ] -o app/js/bundle.js"
+    "images": "cp src/images/* app/images/",
+    "bundle": "browserify src/js/index.js -d -t [ babelify ] -o app/js/bundle.js",
+    "build": "npm run app && npm run html && npm run sass && npm run images && npm run bundle"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +18,7 @@
   "dependencies": {
     "@cycle/core": "^5.0.1",
     "@cycle/dom": "^7.1.1",
+    "babel-polyfill": "^6.2.0",
     "rx": "^4.0.7"
   },
   "devDependencies": {

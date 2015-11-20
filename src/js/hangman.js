@@ -29,7 +29,7 @@ function view(DOM) {
     keyboard.selectedKeys$,
     (artworkVtree, letterSlotsVtree, keyboardVtree, guesses) => {
       return h('div', [
-        h('h2', 'Cycle Hangman'),
+        h('h1', 'Hang Man'),
         artworkVtree,
         letterSlotsVtree,
         keyboardVtree,
