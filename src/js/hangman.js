@@ -24,18 +24,10 @@ function view(DOM) {
   let keyboard = Keyboard({DOM, word$});
 
   let guesses$ = keyboard.guesses$;
-
-  let letterSlots = LetterSlots({
-    word$,
-    guesses$
-  });
   
   let strikes$ = Rx.Observable.combineLatest(word$, guesses$,
     (word, guesses) => {
       let letters = new Set( word.split('') );
-      // when babel 6 will compile use this:
-      //let correct = new Set([c for (c of guesses) if (letters.has(c))]);
-      // until then:
       let correct = new Set();
       for (let c of guesses) {
         if (letters.has(c)) {
@@ -49,11 +41,18 @@ function view(DOM) {
     }
   );
 
+  let artwork = Artwork(strikes$);
+
   let gameOn$ = strikes$.map(count => {
-    return (count !== WINNING_LEVEL) && (count !== LOSING_LEVEL);
+    return (count !== WINNING_LEVEL) &&
+           (count !== LOSING_LEVEL);
   });
 
-  let artwork = Artwork(strikes$);
+  let letterSlots = LetterSlots({
+    word$,
+    guesses$,
+    gameOn$
+  });
 
   return Rx.Observable.combineLatest(
     newGameButton.DOM,
@@ -61,16 +60,16 @@ function view(DOM) {
     letterSlots.DOM,
     keyboard.DOM,
     guesses$,
-    (newGameButton, artworkVtree, letterSlotsVtree, keyboardVtree, guesses) => {
+    (newGameButton,
+     artworkVtree,
+     letterSlotsVtree,
+     keyboardVtree,
+     guesses) => {
       return h('div', [
         h('h1', 'Hang Man'),
         artworkVtree,
         letterSlotsVtree,
         keyboardVtree,
-        // h('div', [
-        //   h('string', 'guesses:'),
-        //   Array.from(guesses).map(char => h('span', char))
-        // ]),
         newGameButton
       ]);
     }
