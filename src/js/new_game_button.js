@@ -2,38 +2,27 @@ import Rx from 'rx';
 import {h} from '@cycle/dom';
 
 function intent(DOM) {
-  var newGame$ = DOM
-    .select('.new-game')
-    .events('click')
-    .map(e => true)
-    .startWith(true);
-
   return {
-    newGame$
+    newGame$: DOM
+      .select('.new-game')
+      .events('click')
+      .map(e => true)
   }
 }
 
-function view(gameOn$) {
-  return gameOn$.map(gameOn => {
-    let classes = ['new-game'];
-    if (!gameOn) {
-      classes.push('shown');
-    }
-    return h('button', 
-      {disabled: gameOn, className: classes.join(' ')}, 
-    'New Game');
-  })
+function view() {
+  return Rx.Observable.just(
+    h('button.new-game.shown', 'New Game')
+  );
 }
 
-export default function({DOM, gameOn$}) {
-
+export default function({DOM}) {
   let actions = intent(DOM);
-  let vtree$ = view(gameOn$);
+  let vtree$ = view();
   let {newGame$} = actions;
 
   return {
     DOM: vtree$,
     newGame$
   };
-
 }

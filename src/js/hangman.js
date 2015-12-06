@@ -2,7 +2,7 @@ import Rx from 'rx';
 import Cycle from '@cycle/core';
 import {h, makeDOMDriver} from '@cycle/dom';
 
-import word$ from './word_stream';
+import words from './word_stream';
 
 import {WINNING_LEVEL, LOSING_LEVEL} from './levels';
 
@@ -13,14 +13,32 @@ import NewGameButton from './new_game_button';
 
 function view(DOM) {
 
+  let newGameButton = NewGameButton({DOM});
+
+  let word$ = newGameButton.newGame$
+    .startWith(true)
+    .map(words.sample)
+    .share()
+    .doOnNext(w => console.log('word:', w));
+
   let keyboard = Keyboard({DOM});
+
+  let keys$ = keyboard.presses$.share();
   
+  let guesses$ = word$.flatMap(x => {
+    return keys$.scan((set, next) => {
+        return set.add(next)
+      }, new Set())
+      .startWith(new Set())
+      .takeUntil(word$);
+    });
+
   let letterSlots = LetterSlots({
     word$,
-    guesses$: keyboard.selectedKeys$
+    guesses$
   });
   
-  let strikes$ = Rx.Observable.combineLatest(word$, keyboard.selectedKeys$,
+  let strikes$ = Rx.Observable.combineLatest(word$, guesses$,
     (word, guesses) => {
       let letters = new Set( word.split('') );
       // when babel 6 will compile use this:
@@ -43,8 +61,6 @@ function view(DOM) {
     return (count !== WINNING_LEVEL) && (count !== LOSING_LEVEL);
   });
 
-  let newGameButton = NewGameButton({DOM, gameOn$});
-
   let artwork = Artwork(strikes$);
 
   return Rx.Observable.combineLatest(
@@ -52,18 +68,17 @@ function view(DOM) {
     artwork.DOM,
     letterSlots.DOM,
     keyboard.DOM,
-    keyboard.selectedKeys$,
-    gameOn$,
-    (newGameButton, artworkVtree, letterSlotsVtree, keyboardVtree, guesses, gameOn) => {
+    guesses$,
+    (newGameButton, artworkVtree, letterSlotsVtree, keyboardVtree, guesses) => {
       return h('div', [
         h('h1', 'Hang Man'),
         artworkVtree,
         letterSlotsVtree,
         keyboardVtree,
-        h('div', [
-          h('string', 'guesses:'),
-          Array.from(guesses).map(char => h('span', char))
-        ]),
+        // h('div', [
+        //   h('string', 'guesses:'),
+        //   Array.from(guesses).map(char => h('span', char))
+        // ]),
         newGameButton
       ]);
     }

@@ -2,19 +2,11 @@ import Rx from 'rx';
 import {h} from '@cycle/dom';
 
 function intent(DOM) {
-  var selectedKeys$ = DOM
-    .select('.keyboard-button')
-    .events('click')
-    .distinct()
-    .map(e => e.target.textContent)
-    .scan((keySet, key) => {
-      keySet.add(key);
-      return keySet;
-    }, new Set())
-    .startWith(new Set());
-
   return {
-    selectedKeys$
+    presses$: DOM
+      .select('.keyboard-button')
+      .events('click')
+      .map(e => e.target.textContent)
   }
 }
 
@@ -22,24 +14,20 @@ function keyboardRows() {
   const ROW_ONE = 'abcdefghijklm'.split('');
   const ROW_TWO = 'nopqrstuvwxyz'.split('');
 
-  return Rx.Observable.from([[ROW_ONE, ROW_TWO]]);
+  return Rx.Observable.of([ROW_ONE, ROW_TWO]);
 }
 
-function model(actions) {
-  let disabled$ = actions.selectedKeys$;
-  let rows$ = keyboardRows();
-
-  return Rx.Observable
-    .combineLatest(disabled$, rows$, (disabled, rows) => {
-      return rows.map(row => row.map(char => {
-        return {
-          char,
-          props: {
-            disabled: disabled.has(char)
-          }
-        };
+function model() {
+  return keyboardRows().map(rows => {
+    return rows.map(row => {
+      return row.map(char => ({
+        char,
+        props: {
+          disabled: false
+        }
       }));
     });
+  });
 }
 
 function view(state$) {
@@ -53,16 +41,14 @@ function view(state$) {
 }
 
 function keyboard({DOM}) {
-
   let actions = intent(DOM);
-  let vtree$ = view(model(actions));
-  let {selectedKeys$} = actions;
+  let vtree$ = view(model());
+  let {presses$} = actions;
 
   return {
     DOM: vtree$,
-    selectedKeys$
+    presses$
   };
-
 }
 
 export default keyboard;
