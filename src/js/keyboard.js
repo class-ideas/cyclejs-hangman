@@ -1,13 +1,23 @@
 import Rx from 'rx';
 import {h} from '@cycle/dom';
 
-function intent(DOM) {
-  return {
-    presses$: DOM
-      .select('.keyboard-button')
-      .events('click')
-      .map(e => e.target.textContent)
-  }
+let set = obs => {
+  return obs
+    .scan((set, next) => set.add(next), new Set())
+    .startWith(new Set());
+}
+
+function intent(DOM, word$) {
+  let key$ = DOM
+    .select('.keyboard-button')
+    .events('click')
+    .map(e => e.target.textContent)
+
+  let guesses$ = word$.flatMap(() => (
+    set(key$).takeUntil(word$)
+  ));
+
+  return guesses$;
 }
 
 function keyboardRows() {
@@ -17,17 +27,18 @@ function keyboardRows() {
   return Rx.Observable.of([ROW_ONE, ROW_TWO]);
 }
 
-function model() {
-  return keyboardRows().map(rows => {
-    return rows.map(row => {
-      return row.map(char => ({
-        char,
-        props: {
-          disabled: false
-        }
-      }));
+function model(guesses$) {
+  return keyboardRows()
+    .combineLatest(guesses$, (rows, guesses) => {
+      return rows.map(row => {
+        return row.map(char => ({
+          char,
+          props: {
+            disabled: guesses.has(char)
+          }
+        }));
+      });
     });
-  });
 }
 
 function view(state$) {
@@ -40,14 +51,13 @@ function view(state$) {
   });
 }
 
-function keyboard({DOM}) {
-  let actions = intent(DOM);
-  let vtree$ = view(model());
-  let {presses$} = actions;
+function keyboard({DOM, word$}) {
+  let guesses$ = intent(DOM, word$);
+  let vtree$ = view(model(guesses$));
 
   return {
     DOM: vtree$,
-    presses$
+    guesses$
   };
 }
 

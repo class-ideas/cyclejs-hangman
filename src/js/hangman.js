@@ -21,17 +21,9 @@ function view(DOM) {
     .share()
     .doOnNext(w => console.log('word:', w));
 
-  let keyboard = Keyboard({DOM});
+  let keyboard = Keyboard({DOM, word$});
 
-  let keys$ = keyboard.presses$.share();
-  
-  let guesses$ = word$.flatMap(x => {
-    return keys$.scan((set, next) => {
-        return set.add(next)
-      }, new Set())
-      .startWith(new Set())
-      .takeUntil(word$);
-    });
+  let guesses$ = keyboard.guesses$;
 
   let letterSlots = LetterSlots({
     word$,
