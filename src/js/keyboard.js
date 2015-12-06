@@ -1,6 +1,8 @@
 import Rx from 'rx';
 import {h} from '@cycle/dom';
 
+import {WINNING_LEVEL, LOSING_LEVEL} from './levels';
+
 let set = obs => {
   return obs
     .scan((set, next) => set.add(next), new Set())
@@ -13,11 +15,38 @@ function intent(DOM, word$) {
     .events('click')
     .map(e => e.target.textContent)
 
-  let guesses$ = word$.flatMap(() => (
+  let allGuesses$ = word$.flatMap(() => (
     set(key$).takeUntil(word$)
   ));
 
-  return guesses$;
+  let allStrikes$ = allGuesses$.combineLatest(word$,
+    (guesses, word) => {
+      let letters = new Set( word );
+      let correct = new Set();
+      for (let c of guesses) {
+        if (letters.has(c)) {
+          correct.add(c);
+        }
+      }
+      if (correct.size === letters.size) {
+        return WINNING_LEVEL;
+      }
+      return guesses.size - correct.size;
+    }
+  );
+
+  let gameOver$ = allStrikes$.filter(strikes => {
+    return strikes === WINNING_LEVEL ||
+           strikes === LOSING_LEVEL
+  });
+
+  let guesses$ = allGuesses$.takeUntil(gameOver$);
+  let strikes$ = allStrikes$.takeUntil(gameOver$);
+
+  return {
+    guesses$,
+    strikes$
+  };
 }
 
 function keyboardRows() {
@@ -52,12 +81,13 @@ function view(state$) {
 }
 
 function keyboard({DOM, word$}) {
-  let guesses$ = intent(DOM, word$);
+  let {guesses$, strikes$} = intent(DOM, word$);
   let vtree$ = view(model(guesses$));
 
   return {
     DOM: vtree$,
-    guesses$
+    guesses$,
+    strikes$
   };
 }
 
