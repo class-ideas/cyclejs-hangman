@@ -19,7 +19,7 @@ function intent(DOM, word$) {
   let key$ = DOM
     .select('.keyboard-button')
     .events('click')
-    .map(e => e.target.textContent)
+    .map(e => e.target.getAttribute('data-char'))
 
   let guesses$ = word$.flatMapLatest(() => (
     set(key$).takeUntil(word$)
@@ -70,6 +70,9 @@ function model({guesses$, gameOver$}) {
           return row.map(char => ({
             char,
             props: {
+              attributes: {
+                'data-char': char
+              },
               disabled: gameOver || guesses.has(char)
             }
           }));
