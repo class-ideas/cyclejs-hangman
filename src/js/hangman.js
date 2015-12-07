@@ -35,18 +35,16 @@ function view(DOM) {
     artwork.DOM,
     letterSlots.DOM,
     keyboard.DOM,
-    guesses$,
-    (newGameButton,
+    (newGameButtonVtree,
      artworkVtree,
      letterSlotsVtree,
-     keyboardVtree,
-     guesses) => {
+     keyboardVtree) => {
       return h('div', [
         h('h1', 'Hang Man'),
         artworkVtree,
         letterSlotsVtree,
         keyboardVtree,
-        newGameButton
+        newGameButtonVtree
       ]);
     }
   );
