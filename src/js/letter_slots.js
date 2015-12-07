@@ -1,31 +1,33 @@
 import Rx from 'rx';
 import {h} from '@cycle/dom';
 
-function model({word$, guesses$, gameOn$}) {
-  return Rx.Observable.combineLatest(word$, guesses$, gameOn$,
-    (word, guesses, gameOn) => {
-      return {word, guesses, gameOn}
+function model({word$, guesses$, gameOver$}) {
+  return Rx.Observable.combineLatest(
+    word$, guesses$, gameOver$,
+    (word, guesses, gameOver) => {
+      return {word, guesses, gameOver}
     }
   );
 }
 
 function view(state$) {
-  return state$.map(({word, guesses, gameOn}) => {
+  return state$.map(({word, guesses, gameOver}) => {
     return h('div.letter-slots', word.split('').map(char => {
       let classNames = ['letter-slot'];
       let text = guesses.has(char) ? char : ' ';
-      if (text === ' ' && !gameOn) {
+      if (text === ' ' && gameOver) {
         classNames.push('revealed');
         text = char;
       }
-      return h('span', {className: classNames.join(' ')}, text);
+      let className = classNames.join(' ');
+      return h('span', {className}, text);
     }));
   });
 }
 
-function letter_slots({word$, guesses$, gameOn$}) {
+function letter_slots(streams) {
   return {
-    DOM: view(model({word$, guesses$, gameOn$}))
+    DOM: view(model(streams))
   };
 }
 

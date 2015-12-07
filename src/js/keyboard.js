@@ -1,13 +1,19 @@
 import Rx from 'rx';
 import {h} from '@cycle/dom';
 
-import {WINNING_LEVEL, LOSING_LEVEL} from './levels';
+import {
+  WINNING_LEVEL, 
+  LOSING_LEVEL, 
+  LEVEL_MAP
+} from './levels';
 
-let set = obs => {
-  return obs
+let set = obs$ => {
+  return obs$
     .scan((set, next) => set.add(next), new Set())
     .startWith(new Set());
 }
+
+let validLevels = new Set(LEVEL_MAP.values());
 
 function intent(DOM, word$) {
   let key$ = DOM
@@ -15,12 +21,12 @@ function intent(DOM, word$) {
     .events('click')
     .map(e => e.target.textContent)
 
-  let allGuesses$ = word$.flatMap(() => (
+  let guesses$ = word$.flatMapLatest(() => (
     set(key$).takeUntil(word$)
-  ));
+  )).share();
 
-  let allStrikes$ = allGuesses$.combineLatest(word$,
-    (guesses, word) => {
+  let strikes$ = guesses$
+    .combineLatest(word$, (guesses, word) => {
       let letters = new Set( word );
       let correct = new Set();
       for (let c of guesses) {
@@ -32,20 +38,19 @@ function intent(DOM, word$) {
         return WINNING_LEVEL;
       }
       return guesses.size - correct.size;
-    }
-  );
+    })
+    .filter(::validLevels.has)
+    .share();
 
-  let gameOver$ = allStrikes$.filter(strikes => {
+  let gameOver$ = strikes$.map(strikes => {
     return strikes === WINNING_LEVEL ||
-           strikes === LOSING_LEVEL
+           strikes === LOSING_LEVEL;
   });
-
-  let guesses$ = allGuesses$.takeUntil(gameOver$);
-  let strikes$ = allStrikes$.takeUntil(gameOver$);
 
   return {
     guesses$,
-    strikes$
+    strikes$,
+    gameOver$
   };
 }
 
@@ -56,18 +61,21 @@ function keyboardRows() {
   return Rx.Observable.of([ROW_ONE, ROW_TWO]);
 }
 
-function model(guesses$) {
+function model({guesses$, gameOver$}) {
   return keyboardRows()
-    .combineLatest(guesses$, (rows, guesses) => {
-      return rows.map(row => {
-        return row.map(char => ({
-          char,
-          props: {
-            disabled: guesses.has(char)
-          }
-        }));
-      });
-    });
+    .combineLatest(
+      guesses$, gameOver$, 
+      (rows, guesses, gameOver) => {
+        return rows.map(row => {
+          return row.map(char => ({
+            char,
+            props: {
+              disabled: gameOver || guesses.has(char)
+            }
+          }));
+        });
+      }
+    );
 }
 
 function view(state$) {
@@ -81,13 +89,14 @@ function view(state$) {
 }
 
 function keyboard({DOM, word$}) {
-  let {guesses$, strikes$} = intent(DOM, word$);
-  let vtree$ = view(model(guesses$));
+  let {guesses$, strikes$, gameOver$} = intent(DOM, word$);
+  let vtree$ = view(model({guesses$, gameOver$}));
 
   return {
     DOM: vtree$,
     guesses$,
-    strikes$
+    strikes$,
+    gameOver$
   };
 }
 
