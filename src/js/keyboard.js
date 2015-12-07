@@ -7,13 +7,13 @@ import {
   LEVEL_MAP
 } from './levels';
 
+const VALID_LEVELS = new Set(LEVEL_MAP.values());
+
 let set = obs$ => {
   return obs$
     .scan((set, next) => set.add(next), new Set())
     .startWith(new Set());
 }
-
-let validLevels = new Set(LEVEL_MAP.values());
 
 function intent(DOM, word$) {
   let key$ = DOM
@@ -39,7 +39,7 @@ function intent(DOM, word$) {
       }
       return guesses.size - correct.size;
     })
-    .filter(::validLevels.has)
+    .filter(::VALID_LEVELS.has)
     .share();
 
   let gameOver$ = strikes$.map(strikes => {
