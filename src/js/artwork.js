@@ -1,4 +1,3 @@
-import Rx from 'rx';
 import {h} from '@cycle/dom';
 import {LEVEL_MAP} from './levels';
 

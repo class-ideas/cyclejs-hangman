@@ -1,6 +1,5 @@
 import Rx from 'rx';
-import Cycle from '@cycle/core';
-import {h, makeDOMDriver} from '@cycle/dom';
+import {h} from '@cycle/dom';
 
 import words from './word_stream';
 

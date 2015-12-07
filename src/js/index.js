@@ -1,8 +1,7 @@
 import 'babel-polyfill';
 
-import Rx from 'rx';
 import Cycle from '@cycle/core';
-import {h, makeDOMDriver} from '@cycle/dom';
+import {makeDOMDriver} from '@cycle/dom';
 
 import hangman from './hangman';
 
