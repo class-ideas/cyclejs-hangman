@@ -1,5 +1,7 @@
+/** @jsx hJSX */
+
 import Rx from 'rx';
-import {h} from '@cycle/dom';
+import {h, hJSX} from '@cycle/dom';
 
 function intent(DOM) {
   return {
@@ -12,7 +14,7 @@ function intent(DOM) {
 
 function view() {
   return Rx.Observable.just(
-    h('button.new-game.shown', 'New Game')
+    <button className="new-game shown">New Game</button>
   );
 }
 

@@ -1,5 +1,8 @@
+/** @jsx hJSX */
+
 import Rx from 'rx';
-import {h} from '@cycle/dom';
+import {h, hJSX} from '@cycle/dom';
+import classes from 'classnames';
 
 function model({word$, guesses$, gameOver$}) {
   return Rx.Observable.combineLatest(
@@ -12,16 +15,18 @@ function model({word$, guesses$, gameOver$}) {
 
 function view(state$) {
   return state$.map(({word, guesses, gameOver}) => {
-    return h('div.letter-slots', word.split('').map(char => {
-      let classNames = ['letter-slot'];
-      let text = guesses.has(char) ? char : ' ';
-      if (text === ' ' && gameOver) {
-        classNames.push('revealed');
-        text = char;
-      }
-      let className = classNames.join(' ');
-      return h('span', {className}, text);
-    }));
+    return (
+      <div className="letter-slots">
+        {word.split('').map(char => {
+          let revealed = !guesses.has(char) && gameOver;
+          let className = classes('letter-slot', {revealed});
+          let text = guesses.has(char) || gameOver ? char : ' ';
+          return (
+            <span className={className}>{text}</span>
+          );
+        })}
+      </div>
+    );
   });
 }
 

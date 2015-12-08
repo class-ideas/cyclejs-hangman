@@ -1,14 +1,25 @@
-import {h} from '@cycle/dom';
+/** @jsx hJSX */
+
+import {h, hJSX} from '@cycle/dom';
 import {LEVEL_MAP} from './levels';
+import classes from 'classnames';
 
 function view(strikes$) {
   return strikes$.map(n => {
     let sprites = [];
+    
     for (var [label, strikes] of LEVEL_MAP) {
       let current = strikes === n ? 'current' : 'hidden';
-      sprites.push(h(`div.${label}.${current}`));
+      sprites.push(
+        <div className={classes(label, current)}/>
+      );
     }
-    return h('div.hangman-sprites', sprites);
+    
+    return (
+      <div className="hangman-sprites">
+        {sprites}
+      </div>
+    );
   });
 }
 

@@ -1,5 +1,7 @@
+/** @jsx hJSX */
+
 import Rx from 'rx';
-import {h} from '@cycle/dom';
+import {h, hJSX} from '@cycle/dom';
 
 import words from './word_stream';
 
@@ -39,13 +41,15 @@ function view(DOM) {
      artworkVtree,
      letterSlotsVtree,
      keyboardVtree) => {
-      return h('div', [
-        h('h1', 'Hang Man'),
-        artworkVtree,
-        letterSlotsVtree,
-        keyboardVtree,
-        newGameButtonVtree
-      ]);
+      return (
+        <div>
+          <h1>Cycle.JSX Hangman</h1>
+          {artworkVtree}
+          {letterSlotsVtree}
+          {keyboardVtree}
+          {newGameButtonVtree}
+        </div>
+      );
     }
   );
 }
