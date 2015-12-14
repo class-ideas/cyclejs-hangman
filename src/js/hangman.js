@@ -43,7 +43,7 @@ function view(DOM) {
      keyboardVtree) => {
       return (
         <div>
-          <h1>Cycle.JSX Hangman</h1>
+          <h1>Hangman</h1>
           {artworkVtree}
           {letterSlotsVtree}
           {keyboardVtree}
