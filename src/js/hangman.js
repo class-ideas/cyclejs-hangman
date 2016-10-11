@@ -1,52 +1,49 @@
-import Rx from 'rx';
-import {h} from '@cycle/dom';
+import xs from 'xstream';
+import {div, h1} from '@cycle/dom';
 
-import words from './word_stream';
+import words from './dictionary';
 
 import Keyboard from './keyboard';
 import LetterSlots from './letter_slots';
 import Artwork from './artwork';
 import NewGameButton from './new_game_button';
 
-function view(DOM) {
+function randomWord() {
+  return words[Math.floor(Math.random()*words.length)];
+}
 
+function view(DOM) {
   let newGameButton = NewGameButton({DOM});
 
   let word$ = newGameButton.newGame$
     .startWith(true)
-    .map(words.sample)
-    .share()
-    .doOnNext(w => console.log('word:', w));
+    .map(randomWord)
+    .remember()
+    .debug(w => console.log('word:', w));
 
   let keyboard = Keyboard({DOM, word$});
-
-  let {guesses$, strikes$, gameOver$} = keyboard;
-
+  let {guesses$, strikes$, isGameOver$} = keyboard;
   let artwork = Artwork(strikes$);
+  let letterSlots = LetterSlots({word$, guesses$, isGameOver$});
 
-  let letterSlots = LetterSlots({
-    word$,
-    guesses$,
-    gameOver$
-  });
-
-  return Rx.Observable.combineLatest(
-    newGameButton.DOM,
+  return xs.combine(
     artwork.DOM,
     letterSlots.DOM,
     keyboard.DOM,
-    (newGameButtonVtree,
-     artworkVtree,
-     letterSlotsVtree,
-     keyboardVtree) => {
-      return h('div', [
-        h('h1', 'Hang Man'),
-        artworkVtree,
-        letterSlotsVtree,
-        keyboardVtree,
-        newGameButtonVtree
-      ]);
-    }
+    newGameButton.DOM
+  ).map(
+    ([
+      artworkView,
+      letterSlotsView,
+      keyboardView,
+      newGameButtonView
+    ]) => div([
+      h1('Hang Man'),
+      artworkView,
+      letterSlotsView,
+      keyboardView,
+      newGameButtonView
+    ])
   );
 }
 

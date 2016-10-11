@@ -1,33 +1,25 @@
-import Rx from 'rx';
-import {h} from '@cycle/dom';
+import xs from 'xstream';
+import {div, span} from '@cycle/dom';
 
-function model({word$, guesses$, gameOver$}) {
-  return Rx.Observable.combineLatest(
-    word$, guesses$, gameOver$,
-    (word, guesses, gameOver) => {
-      return {word, guesses, gameOver}
-    }
-  );
+function view({word$, guesses$, isGameOver$}) {
+  return xs.combine(word$, guesses$, isGameOver$)
+    .map(([word, guesses, isGameOver]) => {
+      return div('.letter-slots', word.split('').map(char => {
+        let classNames = ['letter-slot'];
+        let text = guesses.has(char) ? char : ' ';
+        if (text === ' ' && isGameOver) {
+          classNames.push('revealed');
+          text = char;
+        }
+        let className = classNames.join(' ');
+        return span({props: {className}}, text);
+      }));
+    });
 }
 
-function view(state$) {
-  return state$.map(({word, guesses, gameOver}) => {
-    return h('div.letter-slots', word.split('').map(char => {
-      let classNames = ['letter-slot'];
-      let text = guesses.has(char) ? char : ' ';
-      if (text === ' ' && gameOver) {
-        classNames.push('revealed');
-        text = char;
-      }
-      let className = classNames.join(' ');
-      return h('span', {className}, text);
-    }));
-  });
-}
-
-function letter_slots(streams) {
+function letter_slots({word$, guesses$, isGameOver$}) {
   return {
-    DOM: view(model(streams))
+    DOM: view({word$, guesses$, isGameOver$})
   };
 }
 

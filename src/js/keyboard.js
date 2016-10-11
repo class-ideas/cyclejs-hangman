@@ -1,33 +1,30 @@
-import Rx from 'rx';
+import xs from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats'
 import {h} from '@cycle/dom';
 
 import {
-  WINNING_LEVEL, 
-  LOSING_LEVEL, 
+  WINNING_LEVEL,
+  LOSING_LEVEL,
   LEVEL_MAP
 } from './levels';
 
 const VALID_LEVELS = new Set(LEVEL_MAP.values());
 
-let set = obs$ => {
-  return obs$
-    .scan((set, next) => set.add(next), new Set())
-    .startWith(new Set());
-}
-
-function intent(DOM, word$) {
+function intent({DOM, word$}) {
   let key$ = DOM
     .select('.keyboard-button')
     .events('click')
-    .map(e => e.target.getAttribute('data-char'))
+    .map(e => e.target.getAttribute('data-char'));
 
-  let guesses$ = word$.flatMapLatest(() => (
-    set(key$).takeUntil(word$)
-  )).share();
+  let guesses$ = word$.map(
+    () => key$.fold(
+      (set, next) => set.add(next), new Set()
+    )
+  ).flatten().remember();
 
-  let strikes$ = guesses$
-    .combineLatest(word$, (guesses, word) => {
-      let letters = new Set( word );
+  let strikes$ =
+    xs.combine(word$, guesses$).map(([word, guesses]) => {
+      let letters = new Set(word);
       let correct = new Set();
       for (let c of guesses) {
         if (letters.has(c)) {
@@ -40,17 +37,17 @@ function intent(DOM, word$) {
       return guesses.size - correct.size;
     })
     .filter(::VALID_LEVELS.has)
-    .share();
+    .remember();
 
-  let gameOver$ = strikes$.map(strikes => {
+  let isGameOver$ = strikes$.map(strikes => {
     return strikes === WINNING_LEVEL ||
            strikes === LOSING_LEVEL;
-  });
+  }).remember();
 
   return {
     guesses$,
     strikes$,
-    gameOver$
+    isGameOver$
   };
 }
 
@@ -58,27 +55,25 @@ function keyboardRows() {
   const ROW_ONE = 'abcdefghijklm'.split('');
   const ROW_TWO = 'nopqrstuvwxyz'.split('');
 
-  return Rx.Observable.of([ROW_ONE, ROW_TWO]);
+  return xs.of([ROW_ONE, ROW_TWO]);
 }
 
-function model({guesses$, gameOver$}) {
-  return keyboardRows()
-    .combineLatest(
-      guesses$, gameOver$, 
-      (rows, guesses, gameOver) => {
-        return rows.map(row => {
-          return row.map(char => ({
-            char,
-            props: {
-              attributes: {
-                'data-char': char
-              },
-              disabled: gameOver || guesses.has(char)
+function model({guesses$, isGameOver$}) {
+  return xs.combine(keyboardRows(), guesses$, isGameOver$)
+    .map(([rows, guesses, isGameOver]) => {
+      return rows.map(row => {
+        return row.map(char => ({
+          char,
+          props: {
+            attrs: {
+              'data-char': char,
+              disabled: isGameOver || guesses.has(char)
             }
-          }));
-        });
-      }
-    );
+          }
+        }));
+      });
+    }
+  );
 }
 
 function view(state$) {
@@ -92,14 +87,14 @@ function view(state$) {
 }
 
 function keyboard({DOM, word$}) {
-  let {guesses$, strikes$, gameOver$} = intent(DOM, word$);
-  let vtree$ = view(model({guesses$, gameOver$}));
+  let {guesses$, strikes$, isGameOver$} = intent({DOM, word$});
+  let vtree$ = view(model({guesses$, isGameOver$}));
 
   return {
     DOM: vtree$,
     guesses$,
     strikes$,
-    gameOver$
+    isGameOver$
   };
 }
 

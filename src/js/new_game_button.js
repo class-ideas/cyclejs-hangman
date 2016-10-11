@@ -1,4 +1,4 @@
-import Rx from 'rx';
+import xs from 'xstream';
 import {h} from '@cycle/dom';
 
 function intent(DOM) {
@@ -6,20 +6,19 @@ function intent(DOM) {
     newGame$: DOM
       .select('.new-game')
       .events('click')
-      .map(e => true)
+      .mapTo(true)
   }
 }
 
 function view() {
-  return Rx.Observable.just(
+  return xs.of(
     h('button.new-game.shown', 'New Game')
   );
 }
 
 export default function({DOM}) {
-  let actions = intent(DOM);
+  let {newGame$} = intent(DOM);
   let vtree$ = view();
-  let {newGame$} = actions;
 
   return {
     DOM: vtree$,
